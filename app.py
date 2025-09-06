@@ -78,16 +78,30 @@ with tab1:
             save_config(config)
             st.rerun()
 
-        if st.sidebar.button("Download & Process Behaviour Summary Data"):
-            # ... (Rest of the button logic is unchanged)
-            st.sidebar.info("Starting data refresh...")
-            with st.spinner("Step 1/2: Downloading..."): Downloader().download_conduct_summary()
-            with st.spinner("Step 2/2: Processing..."): Processor().process_conduct_summary()
-            st.cache_data.clear()
-            st.sidebar.success("Data refreshed!")
-            st.rerun()
-            
-        st.header(f"Conduct Summary for: `{selected_profile}`")
+        # Create two columns for the header and the button
+        col1, col2 = st.columns([2, 1])
+
+        with col1:
+            # The header is now inside the first column
+            st.header(f"Conduct Summary for: `{selected_profile}`")
+
+        with col2:
+            # The button is now inside the second column
+            if st.button("Download & Process Data"):
+                try:
+                    st.info("Starting data refresh... Please wait.")
+                    with st.spinner("Step 1/2: Downloading new data..."):
+                        Downloader().download_conduct_summary()
+                    with st.spinner("Step 2/2: Processing local files..."):
+                        Processor().process_conduct_summary()
+                    
+                    st.cache_data.clear()
+                    st.success("Data refreshed successfully!")
+                    st.rerun()
+                except Exception as e:
+                    # If any part of the backend fails, show an error message
+                    st.error(f"An error occurred: {e}")
+
         df = load_profile_data(selected_profile)
         if df is not None and not df.empty:
             # ... (Rest of the dashboard display is unchanged)
