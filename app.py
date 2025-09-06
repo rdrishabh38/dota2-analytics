@@ -44,6 +44,13 @@ def load_profile_data(profile_name):
 # --- Main Application UI ---
 
 st.title("📊 Dota 2 Analytics Hub")
+# --- Adding disclaimer that his app is not associated with Valve ---
+st.sidebar.markdown("---")
+st.sidebar.caption(
+    "This is an unofficial application and is not affiliated with Valve or Steam. "
+    "Steam and the Steam logo are trademarks and/or registered trademarks of "
+    "Valve Corporation in the U.S. and/or other countries."
+)
 
 # Ensure the root 'data' directory exists
 if not os.path.exists("data"):
@@ -99,6 +106,18 @@ with tab1:
 # --- TAB 2: Profile Management ---
 with tab2:
     st.header("Manage Your Profiles")
+    st.error(
+        """
+        ### ⚠️ Important Security Warning
+        Your `steamLoginSecure` cookie is like a temporary password for your account. 
+        **Never share this cookie with anyone.** If someone gets this value, they 
+        can gain access to your Steam account. Treat it with the same level of 
+        security as your actual password.
+
+        To invalidate this cookie, simply log out of Steam on the browser(chrome/firefox/brave etc)
+        where you obtained it. This will force the cookie to expire and prevent any unauthorized access.
+        """
+    )
     config = get_config(); profiles = config.get('profiles', [])
     profile_names = [p['profile_name'] for p in profiles]
     col1, col2 = st.columns([2,1])
