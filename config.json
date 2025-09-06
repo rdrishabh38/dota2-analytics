@@ -1,0 +1,29 @@
+{
+  "active_profile": "Main_Account",
+  "profiles": [
+    {
+      "profile_name": "Main_Account",
+      "custom_url": "YOUR_CUSTOM_URL",
+      "cookies": {
+        "sessionid": "ENTER_YOUR_SESSIONID_VALUE_HERE",
+        "steamLoginSecure": "ENTER_YOUR_STEAMLOGINSECURE_VALUE_HERE",
+        "browserid": "ENTER_YOUR_BROWSERID_VALUE_HERE",
+        "steamCountry": "ENTER_YOUR_STEAMCOUNTRY_VALUE_HERE",
+        "steamparental": "ENTER_YOUR_STEAM_PARENTAL_VALUE_HERE"
+      }
+    },
+    {
+      "profile_name": "Another_Account",
+      "custom_url": "YOUR_OTHER_CUSTOM_URL",
+      "cookies": {
+        "sessionid": "ENTER_YOUR_SESSIONID_VALUE_HERE",
+        "steamLoginSecure": "ENTER_YOUR_STEAMLOGINSECURE_VALUE_HERE",
+        "browserid": "ENTER_YOUR_BROWSERID_VALUE_HERE",
+        "steamCountry": "ENTER_YOUR_STEAMCOUNTRY_VALUE_HERE",
+        "steamparental": "ENTER_YOUR_STEAM_PARENTAL_VALUE_HERE"
+      }
+    }
+  ],
+  "max_retries": 5,
+  "initial_backoff_seconds": 5
+}

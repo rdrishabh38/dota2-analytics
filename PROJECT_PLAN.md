@@ -1,177 +1,130 @@
-# 🎮 Dota 2 Personal Analytics — Project Plan
+# Project Design: Dota 2 Analytics Hub
 
-## 1. Vision & Goals
-A desktop application that allows casual Dota 2 players to:
-- Fetch their match & conduct history directly from Steam Web APIs.
-- View rich analytics dashboards (hero stats, win rates, item usage, behavior trends).
-- Export data (CSV/Excel) for personal analysis.
-- Run with **one-click simplicity** (Windows `.exe` installer).
-- Work **offline-first** (data stored locally in SQLite).
+## 1. Project Overview
 
----
+### Vision
+To create a personal Dota 2 analytics tool that allows a player to download, analyze, and visualize their performance and behavior data over time. The project will support **multiple Steam accounts (profiles)**, allowing users to manage data from different sources seamlessly. The project will start by focusing on the **Behavior Score and Conduct Summary** and will be designed to be easily expandable.
 
-## 2. Architecture Overview
-```
-[PySide6 Desktop UI] 
-       ⇅ HTTP (localhost)
-[FastAPI Backend (embedded in .exe)] 
-       ⇅ SQLAlchemy ORM
-[SQLite Database (d2analytics.db)]
-```
-
-### Development Environment
-- Containers with **FastAPI + Postgres 15** for dev/testing.
-- Docker Compose for orchestration.
-- SQLite used only for **end-user builds**.
-
-### End-User Environment
-- `.exe` containing:
-  - FastAPI backend
-  - SQLite DB (auto-created)
-  - PySide6 GUI
-- No Docker or Postgres required.
+### Core Features
+- **Multi-Profile Support**: Manage and download data for multiple Steam accounts within the same application.
+- **Automated Data Ingestion**: A script to fetch all available conduct summary data for the selected profile.
+- **Intelligent Syncing**: The downloader will perform a full historical download on the first run and efficient, incremental syncs on subsequent runs to only fetch new data.
+- **Data Processing**: A separate script to parse the raw data, clean it, and structure it into a usable format.
+- **Data Isolation**: All raw and processed data for each profile is stored in separate, dedicated directories.
 
 ---
 
-## 3. Technology Stack
-- **Backend**
-  - FastAPI (REST API)
-  - SQLAlchemy 2.0 ORM
-  - Alembic (migrations)
-  - Pydantic (schemas)
-  - HTTPX (Steam API client)
-- **Database**
-  - Dev: Postgres 15 (Dockerized)
-  - Prod: SQLite (embedded)
-- **Frontend (UI)**
-  - PySide6 (Qt for Python)
-  - Matplotlib/Plotly (charts)
-- **Packaging**
-  - PyInstaller (build `.exe`)
-- **Testing**
-  - Pytest
-  - Docker-based integration tests
+## 2. System Architecture & Profile Management
 
----
+The core two-phase architecture remains, but it will now operate within the context of an **active profile** selected in the configuration.
 
-## 4. Data Model (ERD v1)
-```
-Profile
- ├── MatchHistory (many)
- │     └── MatchDetails (heroes, KDA, items, etc.)
- └── ConductHistory (many)
+### Profile Switching
+The user can switch between profiles by changing the `active_profile` value in the `config.json` file. The scripts will read this value on startup to determine which profile's cookies and data directories to use.
 
-Profile(id, steam_id, persona_name, mmr_estimate, created_at)
-MatchHistory(id, profile_id, match_id, hero_id, kills, deaths, assists, result, duration, played_at)
-ConductHistory(id, profile_id, date, reports, commendations, behavior_score)
+### Updated Configuration (`config.json`)
+The configuration will be updated to hold a list of profiles, each with a unique name and its own set of cookies.
+
+```json
+{
+  "active_profile": "Main_Account",
+  "profiles": [
+    {
+      "profile_name": "Main_Account",
+      "cookies": {
+        "sessionid": "SESSIONID_FOR_MAIN_ACCOUNT",
+        "steamLoginSecure": "STEAMLOGINSECURE_FOR_MAIN"
+      }
+    },
+    {
+      "profile_name": "Smurf_Account",
+      "cookies": {
+        "sessionid": "SESSIONID_FOR_SMURF_ACCOUNT",
+        "steamLoginSecure": "STEAMLOGINSECURE_FOR_SMURF"
+      }
+    }
+  ],
+  "max_retries": 5,
+  "initial_backoff_seconds": 5
+}
 ```
 
----
+### Data Storage Layer & Directory Structure
+To ensure **data isolation**, the project will create a parent directory for each profile. All data related to that profile will be stored inside it.
 
-## 5. Development Workflow
-1. **Spin up containers** (Postgres + FastAPI).
-2. **Run migrations** via Alembic.
-3. **UI connects to FastAPI** at `localhost:8000`.
-4. **Switch to SQLite** in config when packaging app.
-
----
-
-## 6. Config & DB-Agnostic Setup
-- Single backend with config-driven DB switch:
-  ```ini
-  # .env (dev)
-  DB_URL=postgresql+psycopg2://user:pass@db:5432/dota
-  ```
-
-  ```ini
-  # .env (prod)
-  DB_URL=sqlite:///./d2analytics.db
-  ```
-
----
-
-## 7. Features (Planned)
-### Phase 1 (MVP)
-- Steam login (cookie-based session).
-- Fetch & store match history + conduct history.
-- Basic dashboards:
-  - Hero win rates
-  - KDA trends
-  - Recent conduct scores
-- Export to CSV.
-
-### Phase 2
-- Custom chart builder.
-- Time-filtered dashboards.
-- Player comparison (multiple profiles).
-- Excel export.
-
-### Phase 3
-- Advanced stats (item timings, lane performance).
-- Notification system (e.g., "new conduct score available").
-- Cloud sync option (future stretch goal).
-
----
-
-## 8. Repo Structure
 ```
-dota2-analytics/
-  backend/
-    app/
-      core/
-        settings.py
-      db/
-        session.py
-        models/
-        migrations/
-      api/
-      schemas/
-      services/
-      main.py
-  ui/
-    main.py
-    windows/
-    components/
-  tests/
-  docker-compose.yaml
-  Dockerfile
-  requirements.txt
-  PROJECT_PLAN.md
+.
+├── data/
+│   ├── Main_Account/
+│   │   ├── raw_conduct_summary/
+│   │   │   └── ...json files...
+│   │   └── conduct_summary.csv
+│   └── Smurf_Account/
+│       ├── raw_conduct_summary/
+│       │   └── ...json files...
+│       └── conduct_summary.csv
+├── download_data.py
+├── process_data.py
+└── config.json
 ```
+---
+
+## 3. Data Model and Flow
+
+The data flow remains the same conceptually but is now scoped to the active profile.
+
+**Profile-Aware Data Flow**:
+`Select Active Profile` → `Use Profile's Cookies` → `Steam API` → `Save to Profile's Raw JSON Folder` → `Process Profile's Raw Files` → `Save to Profile's Processed CSV` → `UI Displays Profile's Data`
+
+### Processed Data Schema
+The schema for the `conduct_summary.csv` file remains unchanged. Each profile will have its own version of this file.
+
+| Column Name             | Data Type | Description                                        |
+| ----------------------- | --------- | -------------------------------------------------- |
+| `MatchID`               | Integer   | The unique ID for the conduct summary report.      |
+| `SummaryDate`           | Datetime  | The date and time the summary was generated.       |
+| `BehaviorScore`         | Integer   | Your behavior score at the end of this period.     |
+| ...                     | ...       | (Other columns as previously defined)              |
 
 ---
 
-## 9. Packaging & Distribution
-- Build `.exe` using PyInstaller:
-  - Bundles PySide6 UI + FastAPI + SQLite.
-  - Runs backend subprocess on launch.
-- First launch → auto-create `d2analytics.db`.
-- Auto-apply Alembic migrations on version upgrade.
+## 4. Component Design (Profile-Aware)
+
+Both scripts will be modified to first determine the active profile before executing their main logic.
+
+### Component 1: The Downloader (`download_data.py`)
+
+1.  **Initialization**:
+    - Reads `config.json`.
+    - Gets the `active_profile` name (e.g., "Main_Account").
+    - Finds the corresponding profile object in the `profiles` list.
+    - Loads the cookies for **only that profile**.
+    - Constructs the correct data path (e.g., `data/Main_Account/raw_conduct_summary/`).
+2.  **Execution**:
+    - The rest of the historical and incremental load logic proceeds as previously designed, but using the specific cookies and saving files to the specific directory of the active profile.
+
+### Component 2: The Processor (`process_data.py`)
+
+1.  **Initialization**:
+    - Reads `config.json` to find the `active_profile`.
+    - Constructs the path to the profile's raw data directory (e.g., `data/Main_Account/raw_conduct_summary/`).
+    - Determines the output path for the processed CSV file (e.g., `data/Main_Account/conduct_summary.csv`).
+2.  **Execution**:
+    - The processing logic remains the same, but it reads from and writes to the directories corresponding to the active profile.
 
 ---
 
-## 10. Roadmap
-### Month 1
-- Backend skeleton (FastAPI + DB setup).
-- ERD finalized.
-- Alembic migrations.
-- Docker dev environment.
+## 5. Project Roadmap
 
-### Month 2
-- Steam client + ingestion pipeline.
-- SQLite switch.
-- Basic PySide6 UI.
+- **Milestone 1: Core Data Pipeline (Profile-Aware)**
+    - [ ] Task 1: Update `config.json` to the new profile list structure.
+    - [ ] Task 2: Implement the **profile-aware** `download_data.py` script.
+    - [ ] Task 3: Implement the **profile-aware** `process_data.py` script.
+    - [ ] Task 4: Test the full pipeline with at least two profiles.
 
-### Month 3
-- Dashboards & charts.
-- CSV export.
-- PyInstaller packaging.
+- **Milestone 2: Basic Visualization (Frontend)**
+    - [ ] Task 5: Create a Streamlit application (`app.py`).
+    - [ ] Task 6: Add a dropdown menu to the UI to select and switch between profiles dynamically.
+    - [ ] Task 7: Display the behavior score chart and data table for the selected profile.
 
-### Month 4+
-- Advanced stats.
-- Excel export.
-- User polish & auto-updater.
-
----
-
-✅ With this plan, we’ll have **one codebase**, **two runtime modes** (dev vs prod), and a clear path from MVP → full product.  
+- **Milestone 3: Expansion**
+    - [ ] Task 8: Identify and integrate the next data source (e.g., match history), ensuring it also follows the profile-based directory structure.
