@@ -49,7 +49,7 @@ st.title("📊 Dota 2 Analytics Hub")
 if not os.path.exists("data"):
     os.makedirs("data")
 
-tab1, tab2 = st.tabs(["📊 Dashboard", "⚙️ Profile Management"])
+tab1, tab2 = st.tabs(["📊 Behaviour Summary", "⚙️ Profile Management"])
 
 # --- TAB 1: Dashboard ---
 with tab1:
@@ -71,7 +71,7 @@ with tab1:
             save_config(config)
             st.rerun()
 
-        if st.sidebar.button("Download & Process New Data"):
+        if st.sidebar.button("Download & Process Behaviour Summary Data"):
             # ... (Rest of the button logic is unchanged)
             st.sidebar.info("Starting data refresh...")
             with st.spinner("Step 1/2: Downloading..."): Downloader().download_conduct_summary()
