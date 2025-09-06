@@ -4,6 +4,7 @@ import json
 import os
 from download_data import Downloader
 from process_data import Processor
+import shutil
 
 # --- Page Configuration ---
 st.set_page_config(
@@ -189,9 +190,12 @@ with tab2:
     if not is_new_profile:
         # ... (Delete Profile section is unchanged) ...
         st.markdown("---"); st.subheader("Delete Profile")
-        st.warning(f"⚠️ Deleting a profile is permanent.")
+        st.warning(f"⚠️ Deleting a profile is permanent. Deleting a profile will also remove all associated data stored locally in the 'data/{selected_profile_to_edit}' directory.")
         if st.checkbox(f"I want to permanently delete '{selected_profile_to_edit}'"):
             if st.button("❌ Delete Profile Permanently"):
+                profile_data_path = os.path.join("data", selected_profile_to_edit)
+                if os.path.exists(profile_data_path):
+                    shutil.rmtree(profile_data_path)
                 profiles_after_deletion = [p for p in profiles if p['profile_name'] != selected_profile_to_edit]
                 config['profiles'] = profiles_after_deletion
                 if config['active_profile'] == selected_profile_to_edit:
