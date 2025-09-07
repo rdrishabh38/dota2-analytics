@@ -100,7 +100,7 @@ def render():
     col1, col2 = st.columns([2, 1])
     with col1:
         st.header(f"Playstyle Stats for: `{active_profile_name}`")
-        st.caption("Based on your last 50 ranked games.")
+        st.caption("Based on your last 50 games(ranked + unranked + turbo).")
     with col2:
         if st.button("🔄 Refresh Playstyle Stats"):
             # ... (button logic is unchanged) ...
