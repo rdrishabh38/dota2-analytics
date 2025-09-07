@@ -28,6 +28,11 @@ def get_raw_ranked_stats_path(profile_name: str) -> str:
     return os.path.join(profile_dir, "raw_ranked_stats.html")
 
 
+def get_raw_playstyle_stats_dir(profile_name: str) -> str:
+    """Returns the directory path for raw playstyle stats JSONs."""
+    return os.path.join(get_profile_dir(profile_name), "raw_playstyle_stats")
+
+
 # --- Processed Data Paths  ---
 
 
@@ -51,3 +56,8 @@ def delete_profile_data_dir(profile_name: str):
 def get_processed_ranked_stats_path(profile_name: str) -> str:
     """Returns the CSV file path for processed ranked stats."""
     return os.path.join(get_processed_dir(profile_name), "ranked_hero_stats.csv")
+
+
+def get_processed_playstyle_stats_path(profile_name: str) -> str:
+    """Returns the CSV file path for processed playstyle stats."""
+    return os.path.join(get_processed_dir(profile_name), "playstyle_stats.csv")

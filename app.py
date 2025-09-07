@@ -2,7 +2,7 @@
 
 import streamlit as st
 from modules.common import config_manager
-from ui import conduct_summary_tab, profile_management_tab, ranked_hero_stats
+from ui import conduct_summary_tab, profile_management_tab, ranked_hero_stats_tab, playstyle_stats_tab
 
 # --- Page Configuration (Global) ---
 st.set_page_config(
@@ -19,9 +19,10 @@ def main():
     config_manager.initialize_config()
 
     # Create the tabs
-    tab1, tab2, tab3 = st.tabs([
+    tab1, tab2, tab3, tab4 = st.tabs([
         "📊 Behaviour Summary",
         "🏆 Ranked Hero Stats",
+        "🕹️ Playstyle Stats",
         "⚙️ Profile Management"
         ])
 
@@ -30,9 +31,12 @@ def main():
         conduct_summary_tab.render()
     
     with tab2:
-        ranked_hero_stats.render()
+        ranked_hero_stats_tab.render()
     
     with tab3:
+        playstyle_stats_tab.render()
+    
+    with tab4:
         profile_management_tab.render()
 
     # --- Footer (Global) ---
